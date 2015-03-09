@@ -307,7 +307,6 @@ public class MainActivity extends Activity {
         }
     }
 
-
     BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
