@@ -295,29 +295,6 @@ public class TodolistWidget extends AppWidgetProvider {
                 new String[]{""+ID});
     }
 
-/*    public void updateStartTime(Context context,int pos,long starttime) {
-
-        int ID = toDoList.get(pos).getID();
-
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(databaseHelper.FIELD_START_TIME,starttime);
-        sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
-                new String[]{""+ID});
-    }
-
-    public void updateEndTime(Context context,int pos,long endtime) {
-
-        int ID = toDoList.get(pos).getID();
-        Log.e("需要更改结束时间的任务的ID是：--------------》",""+ID);
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(databaseHelper.FIELD_END_TIME,endtime);
-        sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
-                new String[]{""+ID});
-    }*/
 
     public void updateDateTime(Context context,final boolean isStartTime,final int pos, final long millis, final int alarmTime) {
 
