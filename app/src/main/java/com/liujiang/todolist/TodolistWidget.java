@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.text.format.Time;
 import android.util.Log;
 import android.widget.RemoteViews;
+import android.widget.Toast;
 
 import com.liujiang.todolist.json.WriteJson;
 import com.liujiang.todolist.operation.Operaton;
@@ -61,6 +62,7 @@ public class TodolistWidget extends AppWidgetProvider {
 
         if( intent.getAction().equals(listviewAction))
         {
+            updateToDoList(context);
             int position = intent.getIntExtra("pos",-1);
             Log.e("onReceive----->来自listview的广播 ： pos is",""+position);
             Log.e("onReceive----------------->the label is",intent.getStringExtra("label"));
@@ -91,7 +93,7 @@ public class TodolistWidget extends AppWidgetProvider {
             {
                 Log.e("onReceive----------------->", "任务已经完成");
                 finishTask(context,position);
-                updateToDoList(context);
+                //updateToDoList(context);
                 // do something
             }
             else if(intent.getStringExtra("label").equals("edit"))
@@ -123,7 +125,7 @@ public class TodolistWidget extends AppWidgetProvider {
             /*updateStartTime(context,position,intent.getExtras().getLong("date_time"));*/
             updateDateTime(context,true,position,intent.getExtras().getLong("date_time"),
                     intent.getExtras().getInt("alarmTime"));
-            updateToDoList(context);
+            //updateToDoList(context);
         }
         if( intent.getAction().equals(updateEndTime)) {
             Log.e("onReceive----------------->", "更新结束时间");
@@ -132,7 +134,7 @@ public class TodolistWidget extends AppWidgetProvider {
             /*updateEndTime(context, position, intent.getExtras().getLong("date_time"));*/
             updateDateTime(context,false,position,intent.getExtras().getLong("date_time"),
                     intent.getExtras().getInt("alarmTime"));
-            updateToDoList(context);
+            //updateToDoList(context);
         }
 
         manager.updateAppWidget(componentName,remoteViews1);
@@ -280,25 +282,42 @@ public class TodolistWidget extends AppWidgetProvider {
                 String jsonString= writeJson.getJsonData(list);
                 System.out.println(jsonString);
                 String result= operaton.uploadAgenda("UpdateAgenda", jsonString);
-                Log.e("updateDateTime-----result---->",result);
+                if(result != null && Integer.parseInt(result) > 0) {
+                    Log.e("finishTask-----result---->",result);
+                    Sync.notifyOK();
+                } else {
+                    Sync.notifyError();
+                }
             }
         }).start();
 
-        int ID = toDoList.get(pos).getID();
-        Log.e("已完成任务的ID是：--------------》",""+ID);
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(databaseHelper.FIELD_STATUS,AddTaskActivity.TASK_FINISH);
+        switch ( Sync.waitForResult(5000) ) {
+            case Sync.TIME_OUT:
+                Toast.makeText(context, "服务器无响应,等待超时", Toast.LENGTH_SHORT).show();
+                break;
+            case Sync.RESULT_ERROR:
+                Toast.makeText(context, "服务器返回错误", Toast.LENGTH_SHORT).show();
+                break;
+            case Sync.RESULT_OK:
+                int ID = toDoList.get(pos).getID();
+                Toast.makeText(context, "任务ID: "+ID+" 已完成并更新状态", Toast.LENGTH_SHORT).show();
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(databaseHelper.FIELD_STATUS,AddTaskActivity.TASK_FINISH);
+                sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
+                        new String[]{""+ID});
 
-        sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
-                new String[]{""+ID});
+                updateToDoList(context);
+                break;
+        }
+
+
     }
 
 
     public void updateDateTime(Context context,final boolean isStartTime,final int pos, final long millis, final int alarmTime) {
 
-        //
         new Thread(new Runnable() {
 
             public void run() {
@@ -322,33 +341,45 @@ public class TodolistWidget extends AppWidgetProvider {
                 //将user对象写出json形式字符串
                 String jsonString= writeJson.getJsonData(list);
                 System.out.println(jsonString);
-                String result= operaton.uploadAgenda("UpdateAgenda", jsonString);
-                Log.e("updateDateTime-----result---->",result);
+                String result = operaton.uploadAgenda("UpdateAgenda", jsonString);
+                if(result != null && Integer.parseInt(result) > 0) {
+                    Log.e("updateDateTime-----result---->",result);
+                    Sync.notifyOK();
+                } else {
+                    Sync.notifyError();
+                }
             }
         }).start();
 
-
-        int ID = toDoList.get(pos).getID();
-
-        DatabaseHelper databaseHelper = new DatabaseHelper(context);
-        SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
-
-
-        ContentValues values = new ContentValues();
-        if (isStartTime == true) {
-            values.put(DatabaseHelper.FIELD_START_TIME, millis);
-            values.put(DatabaseHelper.FIELD_START_ALARM,alarmTime);
-            Log.e("需要更改开始时间的任务的ID是：--------------》",""+ID);
-            Log.e("alarmTime是：--------------》",""+alarmTime);
+        switch ( Sync.waitForResult(5000) ) {
+            case Sync.TIME_OUT:
+                Toast.makeText(context, "等待超时,不能更新时间", Toast.LENGTH_SHORT).show();
+                break;
+            case Sync.RESULT_ERROR:
+                Toast.makeText(context, "服务器返回错误,不能更新时间", Toast.LENGTH_SHORT).show();
+                break;
+            case Sync.RESULT_OK:
+                int ID = toDoList.get(pos).getID();
+                Toast.makeText(context, "任务ID: "+ID+" 时间更新成功", Toast.LENGTH_SHORT).show();
+                DatabaseHelper databaseHelper = new DatabaseHelper(context);
+                SQLiteDatabase sqLiteDatabase = databaseHelper.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                if (isStartTime == true) {
+                    values.put(DatabaseHelper.FIELD_START_TIME, millis);
+                    values.put(DatabaseHelper.FIELD_START_ALARM, alarmTime);
+                    Log.e("需要更改开始时间的任务的ID是：--------------》", "" + ID);
+                    Log.e("alarmTime是：--------------》", "" + alarmTime);
+                } else {
+                    values.put(databaseHelper.FIELD_END_TIME, millis);
+                    values.put(DatabaseHelper.FIELD_END_ALARM, alarmTime);
+                    Log.e("需要更改结束时间的任务的ID是：--------------》", "" + ID);
+                    Log.e("alarmTime是：--------------》", "" + alarmTime);
+                }
+                sqLiteDatabase.update(DatabaseHelper.TABLE_NAME, values, DatabaseHelper.FIELD_ID + "=?",
+                        new String[]{"" + ID});
+                updateToDoList(context);
+                break;
         }
-        else {
-            values.put(databaseHelper.FIELD_END_TIME, millis);
-            values.put(DatabaseHelper.FIELD_END_ALARM, alarmTime);
-            Log.e("需要更改结束时间的任务的ID是：--------------》",""+ID);
-            Log.e("alarmTime是：--------------》",""+alarmTime);
-        }
-        sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
-                new String[]{""+ID});
     }
 
 }
