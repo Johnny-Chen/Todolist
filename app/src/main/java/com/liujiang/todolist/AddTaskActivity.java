@@ -318,10 +318,13 @@ public class AddTaskActivity extends Activity {
             //startTimeTextView.setText("开始时间 : \n"+intent.getExtras().getString("endTimeAlarmMode"));
             if(intent.getAction().equals(DateTimeActivity.starttime_action)) {
                 starttime_l = intent.getExtras().getLong("date_time");
+                //endTime = startTime + 2 hours
+                endtime_l = starttime_l + 2*3600*1000;
                 startAlarmTime = intent.getExtras().getInt("alarmTime");
 
                 startTimeTextView.setText("开始时间 : \n" + DateTimeActivity.getAlarmMode(startAlarmTime));
                 startTimeButton.setText(DateTimeActivity.dateTimeFormat(starttime_l));
+                endTimeButton.setText(DateTimeActivity.dateTimeFormat(endtime_l));
             }
             if(intent.getAction().equals(DateTimeActivity.endtime_action)) {
                 endtime_l = intent.getExtras().getLong("date_time");

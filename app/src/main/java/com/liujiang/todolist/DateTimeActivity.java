@@ -24,6 +24,9 @@ public class DateTimeActivity extends Activity {
     public static String dateFormat = "%Y/%m/%d";
     public static String timeFormat ="%H时%M分";
 
+    public CalendarView mCalendarView;
+    public TimePicker mTimePicker;
+
     public static String dateTimeFormat(long millis) {
         Time time = new Time();
         time.set(millis);
@@ -118,7 +121,7 @@ public class DateTimeActivity extends Activity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String mode = parent.getItemAtPosition(position).toString();
-                Toast.makeText(getApplicationContext(),"提醒模式 ："+mode,2000).show();
+                Toast.makeText(getApplicationContext(),"提醒模式 ："+mode,Toast.LENGTH_LONG).show();
                 alarmTime = getAlarmTime(position);
             }
 
@@ -132,15 +135,15 @@ public class DateTimeActivity extends Activity {
 
 
         // for Calendar View
-        CalendarView mCalendarView = (CalendarView) findViewById(R.id.endTimeCalendarView);
-        Calendar mCalendar = Calendar.getInstance();
+        mCalendarView = (CalendarView) findViewById(R.id.endTimeCalendarView);
+        final Calendar mCalendar = Calendar.getInstance();
         mCalendar.set(date_year,date_month,date_day);
         mCalendarView.setDate(mCalendar.getTimeInMillis());
         mCalendarView.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
             public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
                 String date = year + "年" + month + "月" + dayOfMonth + "日";
-                Toast.makeText(getApplicationContext(), date, 0).show();
+                //Toast.makeText(getApplicationContext(), date, 0).show();
                 date_year = year;
                 date_month = month;
                 date_day = dayOfMonth;
@@ -149,19 +152,19 @@ public class DateTimeActivity extends Activity {
 
 
         // for TimePicker
-        TimePicker timePicker = (TimePicker) findViewById(R.id.endTimePicker);
-        timePicker.setCurrentHour(date_hour);
-        timePicker.setCurrentMinute(date_min);
-        timePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
+        mTimePicker = (TimePicker) findViewById(R.id.endTimePicker);
+        mTimePicker.setCurrentHour(date_hour);
+        mTimePicker.setCurrentMinute(date_min);
+        /*mTimePicker.setOnTimeChangedListener(new TimePicker.OnTimeChangedListener() {
             @Override
             public void onTimeChanged(TimePicker view, int hourOfDay, int minute) {
                 String date = hourOfDay + "时" + minute + "分";
-                Toast.makeText(getApplicationContext(), date, 0).show();
+                //Toast.makeText(getApplicationContext(), date, 0).show();
 
                 date_hour = hourOfDay;
                 date_min = minute;
             }
-        });
+        });*/
 
 
         // for End button OK
@@ -170,34 +173,39 @@ public class DateTimeActivity extends Activity {
             @Override
             public void onClick(View v) {
 
-                Time time = new Time();
-                time.set(0,date_min,date_hour,date_day,date_month,date_year);
+            mTimePicker.clearFocus();
+            date_hour = mTimePicker.getCurrentHour();
+            date_min  = mTimePicker.getCurrentMinute();
+            Time time = new Time();
+            time.set(0, date_min, date_hour, date_day, date_month, date_year);
+            Toast.makeText(getApplicationContext(), "Hour is "+date_hour, Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Min is "+date_min, Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent();
+            Intent intent = new Intent();
 
-                if (isFromWidget == false) {
-                    if(isStartTime == true) {
-                        intent.setAction(starttime_action);
-                    }
-                    else {
-                        intent.setAction(endtime_action);
-                    }
+            if (isFromWidget == false) {
+                if(isStartTime == true) {
+                    intent.setAction(starttime_action);
                 }
                 else {
-                    if(isStartTime == true) {
-                        intent.setAction(widgetUdateStartTime);
-                        intent.putExtra("pos", position);
-                    }
-                    else {
-                        intent.setAction(widgetUpdateEndTime);
-                        intent.putExtra("pos", position);
-                    }
+                    intent.setAction(endtime_action);
                 }
-                intent.putExtra("alarmTime", alarmTime);
-                intent.putExtra("date_time",time.toMillis(false));
-                sendBroadcast(intent);
+            }
+            else {
+                if(isStartTime == true) {
+                    intent.setAction(widgetUdateStartTime);
+                    intent.putExtra("pos", position);
+                }
+                else {
+                    intent.setAction(widgetUpdateEndTime);
+                    intent.putExtra("pos", position);
+                }
+            }
+            intent.putExtra("alarmTime", alarmTime);
+            intent.putExtra("date_time",time.toMillis(false));
+            sendBroadcast(intent);
 
-                finish();
+            finish();
             }
         });
 
