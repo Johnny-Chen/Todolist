@@ -52,7 +52,7 @@ public class TodolistWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         Log.e("onReceive----->action is",""+intent.getAction());
-
+        updateToDoList(context);
 
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         ComponentName componentName = new ComponentName(context,TodolistWidget.class);
@@ -62,7 +62,7 @@ public class TodolistWidget extends AppWidgetProvider {
 
         if( intent.getAction().equals(listviewAction))
         {
-            updateToDoList(context);
+            //updateToDoList(context);
             int position = intent.getIntExtra("pos",-1);
             Log.e("onReceive----->来自listview的广播 ： pos is",""+position);
             Log.e("onReceive----------------->the label is",intent.getStringExtra("label"));
@@ -112,11 +112,11 @@ public class TodolistWidget extends AppWidgetProvider {
         }
         if( intent.getAction().equals(dataIsUpdate)) {
             Log.e("onReceive----------------->", "收到数据已经更新的广播");
-            updateToDoList(context);
+            //updateToDoList(context);
         }
         if( intent.getAction().equals(dataIsAdded)) {
             Log.e("onReceive----------------->", "收到数据添加的广播");
-            updateToDoList(context);
+            //updateToDoList(context);
         }
         if( intent.getAction().equals(updateStartTime)) {
             Log.e("onReceive----------------->", "更新开始时间");
@@ -137,6 +137,7 @@ public class TodolistWidget extends AppWidgetProvider {
             //updateToDoList(context);
         }
 
+        updateToDoList(context);
         manager.updateAppWidget(componentName,remoteViews1);
         manager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.widgetListView);
     }
@@ -308,7 +309,7 @@ public class TodolistWidget extends AppWidgetProvider {
                 sqLiteDatabase.update(DatabaseHelper.TABLE_NAME,values,DatabaseHelper.FIELD_ID+"=?",
                         new String[]{""+ID});
 
-                updateToDoList(context);
+                //updateToDoList(context);
                 break;
         }
 
@@ -377,7 +378,7 @@ public class TodolistWidget extends AppWidgetProvider {
                 }
                 sqLiteDatabase.update(DatabaseHelper.TABLE_NAME, values, DatabaseHelper.FIELD_ID + "=?",
                         new String[]{"" + ID});
-                updateToDoList(context);
+                //updateToDoList(context);
                 break;
         }
     }

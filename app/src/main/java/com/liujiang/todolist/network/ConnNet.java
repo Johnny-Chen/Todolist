@@ -12,7 +12,7 @@ public class ConnNet
     /*private static final String URLVAR="http://10.110.5.38:8080/LoginRegister/";*/
     /*private static final String URLVAR="http://192.168.8.100:8080/LoginRegister/";*/
     private static final String URLVAR="http://1.haiguotuzhi.sinaapp.com/";
-    //将路径定义为一个常量，修改的时候也好更改
+    //e将路径定义为一个常量，修改的时候也好更改
     //通过url获取网络连接  connection
     public HttpURLConnection getConn(String urlpath)
     {
